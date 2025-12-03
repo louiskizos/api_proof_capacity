@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+
+    path('', views.UserWalletsView.as_view(), name='user_wallets'),
     # ======================= Authentification =============================
 
      path('auth/register/', views.UserRegistrationView.as_view(), name='register'),
@@ -20,7 +22,6 @@ urlpatterns = [
     # ===================== Wallets ====================================================
 
     path('wallets/create/', views.CreateWalletView.as_view(), name='create_wallet'),
-    path('wallets/list_wallets/', views.UserWalletsView.as_view(), name='user_wallets'),
     path('wallets/wallets/<int:wallet_id>/balance/', views.WalletBalanceView.as_view(), name='wallet_balance'),
     path('wallets/network/info/', views.NetworkInfoView.as_view(), name='network_info'),
     # ===================== Transactions ====================================================
