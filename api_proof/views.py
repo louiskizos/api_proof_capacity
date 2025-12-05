@@ -144,6 +144,7 @@ class WalletBalanceView(APIView):
 class UserWalletsView(APIView):
     
     def get(self, request):
+        
         wallets = CardanoWallet.objects.filter(user=request.user)
         wallets_data = []
         
