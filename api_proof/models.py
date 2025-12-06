@@ -89,3 +89,89 @@ class CardanoTransaction(models.Model):
     
     def __str__(self):
         return f"{self.transaction_hash[:16]}... - {self.amount_ada} ADA"
+    
+
+
+
+class CardanoNFT(models.Model):
+    NFT_TYPES = [
+        ('certification', 'Certification'),
+        ('art', 'Art'),
+        ('collectible', 'Collectible'),
+        ('utility', 'Utility'),
+        ('other', 'Autre'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('minted', 'Minté'),
+        ('received', 'Reçu'),
+        ('sent', 'Envoyé'),
+        ('burned', 'Brûlé'),
+    ]
+    
+    wallet = models.ForeignKey(CardanoWallet, on_delete=models.CASCADE, related_name='nfts')
+    policy_id = models.CharField(max_length=255, db_index=True)
+    asset_name = models.CharField(max_length=255, db_index=True)
+    fingerprint = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    image_url = models.URLField(blank=True)
+    metadata = models.JSONField(default=dict)
+    nft_type = models.CharField(max_length=20, choices=NFT_TYPES, default='certification')
+    quantity = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'cardano_nfts'
+        unique_together = ['policy_id', 'asset_name']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} ({self.policy_id[:10]}...)"
+    
+    @property
+    def asset_id(self):
+        return f"{self.policy_id}{self.asset_name}"
+
+class CertificationNFT(models.Model):
+    
+    nft = models.OneToOneField(CardanoNFT, on_delete=models.CASCADE, related_name='certification')
+    issuer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='issued_certifications')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_certifications')
+    certification_type = models.CharField(max_length=100)
+    issue_date = models.DateField()
+    expiration_date = models.DateField(null=True, blank=True)
+    verification_url = models.URLField(blank=True)
+    is_revoked = models.BooleanField(default=False)
+    revocation_reason = models.TextField(blank=True)
+    
+    class Meta:
+        db_table = 'certification_nfts'
+    
+    def __str__(self):
+        return f"Certification {self.certification_type} - {self.recipient.username}"
+
+class NFTPolicy(models.Model):
+    """Politique de minting pour NFTs"""
+    POLICY_TYPES = [
+        ('single_issuer', 'Émetteur unique'),
+        ('multi_issuer', 'Multi-émetteurs'),
+        ('time_locked', 'Verrouillé temporel'),
+    ]
+    
+    name = models.CharField(max_length=200)
+    policy_id = models.CharField(max_length=255, unique=True)
+    policy_script = models.TextField()  # Script CBOR
+    policy_type = models.CharField(max_length=20, choices=POLICY_TYPES, default='single_issuer')
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_policies')
+    valid_before = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'nft_policies'
+    
+    def __str__(self):
+        return f"Policy {self.name} ({self.policy_id[:10]}...)"

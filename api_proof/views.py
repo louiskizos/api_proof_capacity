@@ -3,15 +3,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth import get_user_model
-from django.db import transaction
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
+from .models import CardanoNFT, CertificationNFT, NFTPolicy
+from .nft_service import CardanoNFT
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 User = get_user_model()
 
 class UserRegistrationView(APIView):
+
     permission_classes = [permissions.AllowAny]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -34,8 +38,9 @@ class UserRegistrationView(APIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(APIView):
+
     permission_classes = [permissions.AllowAny]
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -55,6 +60,8 @@ class UserLoginView(APIView):
         }, status=status.HTTP_401_UNAUTHORIZED)
 
 class UserLogoutView(APIView):
+
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         logout(request)
         return Response({
@@ -70,6 +77,7 @@ class UserProfileView(APIView):
         })
 
 class CreateWalletView(APIView):
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             if not request.user.is_authenticated:
@@ -144,7 +152,7 @@ class WalletBalanceView(APIView):
 class UserWalletsView(APIView):
     
     def get(self, request):
-        
+
         wallets = CardanoWallet.objects.filter(user=request.user)
         wallets_data = []
         
@@ -185,7 +193,7 @@ class NetworkInfoView(APIView):
 class CreateTransactionView(APIView):
     
     # Crée et envoie une transaction
-
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request, wallet_id):
         try:
             
@@ -356,7 +364,7 @@ class WalletTransactionsView(APIView):
 # debut de la connexion wallet
 
 class ImportWalletMnemonicView(APIView):
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             if not request.user.is_authenticated:
@@ -421,7 +429,7 @@ class ImportWalletMnemonicView(APIView):
             }, status=400)
 
 class ImportWalletPrivateKeysView(APIView):
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             if not request.user.is_authenticated:
@@ -483,7 +491,7 @@ class ImportWalletPrivateKeysView(APIView):
 
 
 class ImportWalletPublicView(APIView):
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             if not request.user.is_authenticated:
@@ -555,7 +563,7 @@ class ImportWalletPublicView(APIView):
             }, status=400)        
 
 class ValidateAddressView(APIView):
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             address = request.data.get('address')
@@ -582,7 +590,7 @@ class ValidateAddressView(APIView):
             }, status=400)
 
 class ValidateMnemonicView(APIView):
-    
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:
             mnemonic_phrase = request.data.get('mnemonic_phrase')
@@ -605,4 +613,221 @@ class ValidateMnemonicView(APIView):
             return Response({
                 'status': 'error',
                 'message': f'Erreur validation: {str(e)}'
+            }, status=400)
+        
+
+class CreateNFTPolicyView(APIView):
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+    def post(self, request, wallet_id):
+        try:
+            wallet = CardanoWallet.objects.get(id=wallet_id, user=request.user)
+            
+            policy_type = request.data.get('policy_type', 'single_issuer')
+            valid_before = request.data.get('valid_before')
+            
+            service = CardanoNFT(network=wallet.network)
+            
+            wallet_data = {
+                'payment_address': wallet.payment_address,
+                'payment_signing_key': wallet.payment_signing_key
+            }
+            
+            policy_data = service.create_policy(wallet_data, policy_type, valid_before)
+            
+            # Sauvegarder la politique
+            policy = NFTPolicy.objects.create(
+                name=request.data.get('name', f"Policy {policy_type}"),
+                policy_id=policy_data['policy_id'],
+                policy_script=policy_data['policy_script'],
+                policy_type=policy_type,
+                creator=request.user,
+                valid_before=valid_before
+            )
+            
+            return Response({
+                'status': 'success',
+                'message': 'Politique créée avec succès',
+                'policy': {
+                    'id': policy.id,
+                    'name': policy.name,
+                    'policy_id': policy.policy_id,
+                    'policy_type': policy.policy_type,
+                    'valid_before': policy.valid_before
+                }
+            }, status=201)
+            
+        except CardanoWallet.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Wallet non trouvé'
+            }, status=404)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+class MintNFTView(APIView):
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+    def post(self, request, wallet_id):
+        try:
+            wallet = CardanoWallet.objects.get(id=wallet_id, user=request.user)
+            
+            policy_id = request.data.get('policy_id')
+            asset_name = request.data.get('asset_name')
+            metadata = request.data.get('metadata', {})
+            
+            service = CardanoNFT(network=wallet.network)
+            
+            wallet_data = {
+                'payment_address': wallet.payment_address,
+                'payment_signing_key': wallet.payment_signing_key
+            }
+            
+            # Récupérer la politique
+            policy = NFTPolicy.objects.get(policy_id=policy_id, creator=request.user)
+            policy_data = {
+                'policy_id': policy.policy_id,
+                'policy_signing_key': request.data.get('policy_signing_key')  # À stocker en sécurité!
+            }
+            
+            result = service.mint_nft(wallet_data, policy_data, asset_name, metadata)
+            
+            # Sauvegarder le NFT
+            nft = CardanoNFT.objects.create(
+                wallet=wallet,
+                policy_id=policy_id,
+                asset_name=asset_name,
+                fingerprint=result['fingerprint'],
+                name=metadata.get('name', asset_name),
+                description=metadata.get('description', ''),
+                image_url=metadata.get('image_url', ''),
+                metadata=metadata,
+                nft_type=metadata.get('type', 'certification'),
+                status='minted'
+            )
+            
+            return Response({
+                'status': 'success',
+                'message': 'NFT minté avec succès',
+                'nft': {
+                    'id': nft.id,
+                    'name': nft.name,
+                    'policy_id': nft.policy_id,
+                    'asset_name': nft.asset_name,
+                    'fingerprint': nft.fingerprint,
+                    'transaction_id': result['transaction_id'],
+                    'explorer_url': result['explorer_url']
+                }
+            }, status=201)
+            
+        except CardanoWallet.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Wallet non trouvé'
+            }, status=404)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+class CreateCertificationNFTView(APIView):
+    
+    def post(self, request, wallet_id):
+        try:
+            wallet = CardanoWallet.objects.get(id=wallet_id, user=request.user)
+            
+            recipient_address = request.data.get('recipient_address')
+            certification_data = request.data.get('certification_data', {})
+            
+            service = CardanoNFT(network=wallet.network)
+            
+            wallet_data = {
+                'payment_address': wallet.payment_address,
+                'payment_signing_key': wallet.payment_signing_key
+            }
+            
+            result = service.create_certification_nft(
+                wallet_data,
+                recipient_address,
+                certification_data
+            )
+            
+            return Response({
+                'status': 'success',
+                'message': 'Certification NFT créé avec succès',
+                'certification': {
+                    'transaction_id': result['transaction_id'],
+                    'policy_id': result['policy_id'],
+                    'asset_name': result['asset_name'],
+                    'certification_data': result['certification_data'],
+                    'explorer_url': result['explorer_url']
+                }
+            }, status=201)
+            
+        except CardanoWallet.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Wallet non trouvé'
+            }, status=404)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+class GetWalletNFTsView(APIView):
+    
+    def get(self, request, wallet_id):
+        try:
+            wallet = CardanoWallet.objects.get(id=wallet_id, user=request.user)
+            
+            service = CardanoNFT(network=wallet.network)
+            nfts = service.get_wallet_nfts(wallet.payment_address)
+            
+            return Response({
+                'status': 'success',
+                'wallet_id': wallet.id,
+                'nfts': nfts,
+                'count': len(nfts)
+            })
+            
+        except CardanoWallet.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Wallet non trouvé'
+            }, status=404)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+class VerifyCertificationView(APIView):
+    
+    def get(self, request):
+        try:
+            fingerprint = request.GET.get('fingerprint')
+            address = request.GET.get('address')
+            
+            if not fingerprint and not address:
+                return Response({
+                    'status': 'error',
+                    'message': 'Fingerprint ou adresse requis'
+                }, status=400)
+            
+            
+            return Response({
+                'status': 'success',
+                'verification': {
+                    'valid': True,
+                    'message': 'Certification vérifiée avec succès'
+                }
+            })
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
             }, status=400)

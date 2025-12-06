@@ -30,5 +30,11 @@ urlpatterns = [
     path('api/wallets/<int:wallet_id>/historique/', views.TransactionHistoryView.as_view(), name='transaction_history'),
     path('api/transactions/', views.WalletTransactionsView.as_view(), name='all_transactions'),
     path('api/transactions/<str:transaction_hash>/', views.TransactionDetailsView.as_view(), name='transaction_details'),
+    # ===================== NFT ====================================================
+    path('wallets/<int:wallet_id>/nfts/policy/', views.CreateNFTPolicyView.as_view(), name='create-policy'),
+    path('wallets/<int:wallet_id>/nfts/mint/', views.MintNFTView.as_view(), name='mint-nft'),
+    path('wallets/<int:wallet_id>/nfts/certification/', views.CreateCertificationNFTView.as_view(), name='create-certification'),
+    path('wallets/<int:wallet_id>/nfts/', views.GetWalletNFTsView.as_view(), name='get-nfts'),
+    path('certifications/verify/', views.VerifyCertificationView.as_view(), name='verify-certification'),
 
 ]
