@@ -7,7 +7,6 @@ from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSe
 from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
 from .models import CardanoNFT, CertificationNFT, NFTPolicy
-from .nft_service import CardanoNFT
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 User = get_user_model()
