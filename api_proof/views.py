@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
-from .models import CardanoNFT, CertificationNFT, NFTPolicy
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 
 
@@ -78,7 +77,7 @@ class UserProfileView(APIView):
         })
 
 class CreateWalletView(APIView):
-    
+
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     def post(self, request):
         try:

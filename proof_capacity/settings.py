@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'api_proof',
     'rest_framework',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,33 @@ MIDDLEWARE = [
 
 
 AUTH_USER_MODEL = 'api_proof.User'
+# Session Configuration (CRITICAL)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # ou 'django.contrib.sessions.backends.cache'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # True en production avec HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'  # Important: 'Lax' pour CORS avec credentials
+SESSION_COOKIE_DOMAIN = None  # Laisser None pour localhost
+SESSION_COOKIE_PATH = '/'
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 
+# CSRF Configuration (important pour les requêtes POST)
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_HTTPONLY = False  # Doit être False pour que JS puisse le lire
+CSRF_COOKIE_SECURE = False  # True en production
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_AGE = 31449600  # 1 year
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+]
+
+# CORS Configuration (améliorée)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
@@ -69,6 +96,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'Authorization', 'X-CSRFToken']
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -79,11 +107,14 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-csrf-token',
 ]
 
+# REST Framework (ajouter Token auth aussi)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

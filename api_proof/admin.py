@@ -6,7 +6,7 @@ from .models import *
 # User = get_user_model()
 
 
-
+admin.site.register(User)
 admin.site.register(CardanoWallet)
 admin.site.register(CardanoNFT)
 admin.site.register(VideoCourse)
