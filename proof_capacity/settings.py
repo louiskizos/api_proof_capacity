@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -110,17 +111,15 @@ CORS_ALLOW_HEADERS = [
     'x-csrf-token',
 ]
 
-# REST Framework (ajouter Token auth aussi)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Doit être présent
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
 }
-
 # Configuration Blockfrost pour PREVIEW (testnet)
 BLOCKFROST_PROJECT_ID_PREVIEW = "previewYBps1L7dPtVstkxZST5lptKJ16Lke4BA"
 BLOCKFROST_PROJECT_ID = BLOCKFROST_PROJECT_ID_PREVIEW

@@ -7,6 +7,7 @@ from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSe
 from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework.authtoken.models import Token  
 
 
 
@@ -37,20 +38,29 @@ class UserRegistrationView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+
 class UserLoginView(APIView):
 
     permission_classes = [permissions.AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+    
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            
+            # Créer une session (pour compatibilité)
             login(request, user)
+            
+            # Créer ou récupérer le Token d'authentification
+            token, created = Token.objects.get_or_create(user=user)
             
             return Response({
                 'status': 'success',
                 'message': 'Connexion réussie',
-                'user': UserSerializer(user).data
+                'user': UserSerializer(user).data,
+                'token': token.key,  # AJOUTER LE TOKEN ICI
+                'session_id': request.session.session_key  # Optionnel pour debug
             }, status=status.HTTP_200_OK)
         
         return Response({
@@ -58,6 +68,7 @@ class UserLoginView(APIView):
             'message': 'Identifiants invalides',
             'errors': serializer.errors
         }, status=status.HTTP_401_UNAUTHORIZED)
+    
 
 class UserLogoutView(APIView):
 
@@ -76,17 +87,39 @@ class UserProfileView(APIView):
             'user': UserSerializer(request.user).data
         })
 
+# Dans views.py
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 class CreateWalletView(APIView):
 
+    # Ajouter TokenAuthentication en PREMIER
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+    
     def post(self, request):
+        
         try:
+            # Debug: Vérifier l'authentification
+            print("=" * 60)
+            print(f"CREATE WALLET REQUEST")
+            print(f"User: {request.user}")
+            print(f"Authenticated: {request.user.is_authenticated}")
+            print(f"Auth class used: {request.auth}")
+            print(f"Token present: {'Yes' if hasattr(request, 'auth') and request.auth else 'No'}")
+            print(f"Session key: {request.session.session_key if hasattr(request, 'session') else 'No session'}")
+            print("=" * 60)
+            
             if not request.user.is_authenticated:
                 return Response({
                     'status': 'error',
-                    'message': 'Utilisateur non authentifié'
+                    'message': 'User not authenticated',
+                    'user': str(request.user),
+                    'auth_type': str(request.auth)
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
+            # Votre logique existante...
             data = request.data
             name = data.get('name')
             
@@ -118,11 +151,14 @@ class CreateWalletView(APIView):
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
+            import traceback
+            print(f"Error in CreateWalletView: {str(e)}")
+            print(traceback.format_exc())
+            
             return Response({
                 'status': 'error',
                 'message': f'Erreur lors de la création du wallet: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class WalletBalanceView(APIView):
