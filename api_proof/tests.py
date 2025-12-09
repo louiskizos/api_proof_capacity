@@ -29,6 +29,8 @@ from django.test import TestCase
 #   "network": "preview"
 # }
 
+
+
 # {
 #             "id": 1,
 #             "name": "Mon wallet cardano",
@@ -56,3 +58,9 @@ from django.test import TestCase
 # {
 #   "mnemonic_phrase": "word1 word2 ... word24"
 # }
+
+# nft/1/nfts/certification/
+{
+    "issuer_name": "Proof Capacity Blockchain",
+    "description": "Émetteur officiel de certifications"
+}

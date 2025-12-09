@@ -175,3 +175,168 @@ class NFTPolicy(models.Model):
     
     def __str__(self):
         return f"Policy {self.name} ({self.policy_id[:10]}...)"
+
+
+
+
+class VideoCourse(models.Model):
+
+    COURSE_LEVELS = [
+        ('beginner', 'Débutant'),
+        ('intermediate', 'Intermédiaire'),
+        ('advanced', 'Avancé'),
+        ('expert', 'Expert'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses_taught')
+    level = models.CharField(max_length=20, choices=COURSE_LEVELS, default='beginner')
+    duration_hours = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_free = models.BooleanField(default=False)
+    thumbnail_url = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'video_courses'
+    
+    def __str__(self):
+        return self.title
+
+class VideoModule(models.Model):
+
+    course = models.ForeignKey(VideoCourse, on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    video_url = models.URLField()  # Lien vers la vidéo
+    duration_minutes = models.PositiveIntegerField(default=10)
+    order = models.PositiveIntegerField(default=0)
+    is_preview = models.BooleanField(default=False)  # Gratuit en preview
+    
+    class Meta:
+        db_table = 'video_modules'
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"
+
+class CourseEnrollment(models.Model):
+
+    ENROLLMENT_STATUS = [
+        ('active', 'Actif'),
+        ('completed', 'Terminé'),
+        ('dropped', 'Abandonné'),
+    ]
+    
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrollments')
+    course = models.ForeignKey(VideoCourse, on_delete=models.CASCADE, related_name='enrollments')
+    status = models.CharField(max_length=20, choices=ENROLLMENT_STATUS, default='active')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    progress_percentage = models.FloatField(default=0)
+    
+    class Meta:
+        db_table = 'course_enrollments'
+        unique_together = ['student', 'course']
+    
+    def __str__(self):
+        return f"{self.student.email} - {self.course.title}"
+
+class VideoView(models.Model):
+
+    enrollment = models.ForeignKey(CourseEnrollment, on_delete=models.CASCADE, related_name='video_views')
+    module = models.ForeignKey(VideoModule, on_delete=models.CASCADE)
+    watch_duration_seconds = models.PositiveIntegerField(default=0)
+    watched_percentage = models.FloatField(default=0)
+    last_watched_at = models.DateTimeField(auto_now=True)
+    completed = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'video_views'
+        unique_together = ['enrollment', 'module']
+    
+    def __str__(self):
+        return f"{self.enrollment.student.email} - {self.module.title}"
+
+class Quiz(models.Model):
+
+    module = models.ForeignKey(VideoModule, on_delete=models.CASCADE, related_name='quizzes')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    passing_score = models.FloatField(default=70)  # Score minimum en %
+    max_attempts = models.PositiveIntegerField(default=3)
+    
+    class Meta:
+        db_table = 'quizzes'
+    
+    def __str__(self):
+        return f"{self.module.title} - {self.title}"
+
+class QuizQuestion(models.Model):
+
+    QUESTION_TYPES = [
+        ('multiple_choice', 'Choix multiple'),
+        ('true_false', 'Vrai/Faux'),
+        ('short_answer', 'Réponse courte'),
+    ]
+    
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='multiple_choice')
+    text = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'quiz_questions'
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"Q{self.order}: {self.text[:50]}..."
+
+class QuestionOption(models.Model):
+
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name='options')
+    text = models.TextField()
+    is_correct = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'question_options'
+    
+    def __str__(self):
+        return f"{self.text[:30]}... (Correct: {self.is_correct})"
+
+class QuizAttempt(models.Model):
+
+    enrollment = models.ForeignKey(CourseEnrollment, on_delete=models.CASCADE, related_name='quiz_attempts')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    score = models.FloatField(default=0)
+    passed = models.BooleanField(default=False)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+    answers_data = models.JSONField(default=dict)  # Stocke les réponses
+    
+    class Meta:
+        db_table = 'quiz_attempts'
+        ordering = ['-attempted_at']
+    
+    def __str__(self):
+        return f"{self.enrollment.student.email} - {self.quiz.title}: {self.score}%"
+
+class VideoCourseCertificate(models.Model):
+
+    enrollment = models.OneToOneField(CourseEnrollment, on_delete=models.CASCADE, related_name='certificate')
+    nft = models.ForeignKey('CardanoNFT', on_delete=models.SET_NULL, null=True, blank=True, related_name='video_certificates')
+    issued_at = models.DateTimeField(auto_now_add=True)
+    skills_verified = models.JSONField(default=list)  # Compétences vérifiées
+    
+    class Meta:
+        db_table = 'video_course_certificates'
+    
+    def __str__(self):
+        return f"Certificat: {self.enrollment.course.title} - {self.enrollment.student.email}"
+    
+
+
+
+
+
