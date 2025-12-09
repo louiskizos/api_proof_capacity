@@ -14,10 +14,6 @@ import hashlib
 
 
 class ConnectWalletView(APIView):
-    """
-    Vue pour connecter un wallet externe (Nami, Eternl, Flint, etc.)
-    via l'API de navigateur Cardano dApp
-    """
     
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, FormParser, MultiPartParser]

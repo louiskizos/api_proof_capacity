@@ -1,13 +1,15 @@
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth import get_user_model
 from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
-from rest_framework.authtoken.models import Token  
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -87,29 +89,16 @@ class UserProfileView(APIView):
             'user': UserSerializer(request.user).data
         })
 
-# Dans views.py
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 class CreateWalletView(APIView):
 
-    # Ajouter TokenAuthentication en PREMIER
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
-        
+
         try:
-            # Debug: Vérifier l'authentification
-            print("=" * 60)
-            print(f"CREATE WALLET REQUEST")
-            print(f"User: {request.user}")
-            print(f"Authenticated: {request.user.is_authenticated}")
-            print(f"Auth class used: {request.auth}")
-            print(f"Token present: {'Yes' if hasattr(request, 'auth') and request.auth else 'No'}")
-            print(f"Session key: {request.session.session_key if hasattr(request, 'session') else 'No session'}")
-            print("=" * 60)
             
             if not request.user.is_authenticated:
                 return Response({
@@ -188,6 +177,13 @@ class WalletBalanceView(APIView):
 
 class UserWalletsView(APIView):
     
+
+
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+
     def get(self, request):
 
         wallets = CardanoWallet.objects.filter(user=request.user)
