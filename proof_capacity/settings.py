@@ -80,21 +80,23 @@ CSRF_COOKIE_HTTPONLY = False  # Doit être False pour que JS puisse le lire
 CSRF_COOKIE_SECURE = False  # True en production
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_AGE = 31449600  # 1 year
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-]
+CSRF_COOKIE_AGE = 31449600  
+CSRF_TRUSTED_ORIGINS = True 
+# [
+#     'http://localhost:3000',
+#     'http://localhost:3001',
+#     'http://127.0.0.1:3000',
+#     'http://127.0.0.1:3001',
+# ]
 
-# CORS Configuration (améliorée)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-]
+
+CORS_ALLOWED_ORIGINS = True
+# [
+#     "http://localhost:3000",
+#     "http://localhost:3001",
+#     "http://127.0.0.1:3000",
+#     "http://127.0.0.1:3001",
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ['Content-Type', 'Authorization', 'X-CSRFToken']
