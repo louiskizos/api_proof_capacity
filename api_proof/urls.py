@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, views_nft, views_video_certification, views_wallett
+from . import views, views_nft, views_video_certification, views_video
 
 urlpatterns = [
 
@@ -45,5 +45,6 @@ urlpatterns = [
     path('courses/<int:course_id>/request-certification/', views_video_certification.RequestCertificationAPI.as_view(), name='request-certification'),
     path('my-certificates/', views_video_certification.MyCertificatesAPI.as_view(), name='my-certificates'),
     path('courses/catalog/', views_video_certification.CourseCatalogAPI.as_view(), name='course-catalog'),
+    path('videos/free/', views_video.PublicVideoAPIView.as_view(), name='free-videos'),
 
 ]
