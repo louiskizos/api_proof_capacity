@@ -230,17 +230,3 @@ class VideoCertificationService:
             'explorer_url': f"https://{self.network}.cardanoscan.io/search?filter=simulated"
         }
     
-
-
-
-from api_proof.models import VideoCourse, VideoModule, User
-
-instructor = User.objects.get(email='test@example.com')
-course = VideoCourse.objects.create(
-    title="Formation Django & Cardano",
-    description="Apprenez à intégrer Django avec Cardano",
-    instructor=instructor,
-    level='intermediate',
-    duration_hours=10,
-    is_free=True
-)
