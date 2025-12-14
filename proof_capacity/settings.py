@@ -165,7 +165,10 @@ MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# DATABASE CONFIG FOR RENDER
+import os
+import dj_database_url
+
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:

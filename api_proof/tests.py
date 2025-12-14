@@ -11,6 +11,15 @@ from django.test import TestCase
     "last_name": "Louis"
 }
 
+
+{
+    "email": "admin@example.com",
+    "password": "Test@1234"
+}
+
+
+
+
 { 
     "name": "MyCardanoWallet"
 }
