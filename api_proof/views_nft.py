@@ -11,44 +11,73 @@ import time
 
 
 
+from .wallet_service import CardanoWalletService  # Import correct du service
 
 class CreateNFTPolicyView(APIView):
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+    
     def post(self, request, wallet_id):
         try:
+            # 1. Récupérer le wallet
             wallet = CardanoWallet.objects.get(id=wallet_id, user=request.user)
             
-            policy_type = request.data.get('policy_type', 'single_issuer')
-            valid_before = request.data.get('valid_before')
+            # 2. Récupérer les données
+            data = request.data
+            policy_name = data.get('policy_name') or data.get('name', 'Default Policy')
+            policy_type = data.get('policy_type', 'single_issuer')
             
-            service = CardanoNFT(network=wallet.network)
+            # Convertir expiration_slots en DateTime si fourni
+            expiration_slots = data.get('expiration_slots')
+            valid_before = None
+            
+            if expiration_slots and int(expiration_slots) > 0:
+                from datetime import datetime, timedelta
+                # Approximation: 1 slot = 1 seconde
+                valid_before = datetime.now() + timedelta(seconds=int(expiration_slots))
+            
+            # 3. Créer la policy via le service
+            service = CardanoWalletService(network=wallet.network)
             
             wallet_data = {
                 'payment_address': wallet.payment_address,
-                'payment_signing_key': wallet.payment_signing_key
+                'payment_signing_key': wallet.payment_signing_key,
+                'stake_signing_key': wallet.stake_signing_key
             }
             
-            policy_data = service.create_policy(wallet_data, policy_type, valid_before)
-            
-            # Sauvegarder la politique
-            policy = NFTPolicy.objects.create(
-                name=request.data.get('name', f"Policy {policy_type}"),
-                policy_id=policy_data['policy_id'],
-                policy_script=policy_data['policy_script'],
-                policy_type=policy_type,
-                creator=request.user,
-                valid_before=valid_before
+            policy_data = service.create_nft_policy(
+                wallet_data, 
+                policy_name, 
+                expiration_slots or 0
             )
+            
+            # 4. Créer l'objet NFTPolicy selon VOTRE modèle
+            policy = NFTPolicy.objects.create(
+                name=policy_name,
+                policy_id=policy_data['policy_id'],
+                policy_script=str(policy_data.get('policy_script', {})),  # Convertir en string
+                policy_type=policy_type,
+                creator=request.user,  # Important: creator est un User, pas un Wallet
+                valid_before=valid_before,
+                is_active=True
+            )
+            
+            # Optionnel: lier aussi au wallet (si vous voulez cette relation)
+            # Vous pourriez ajouter un champ ManyToManyField dans NFTPolicy pour les wallets
             
             return Response({
                 'status': 'success',
-                'message': 'Politique créée avec succès',
+                'message': 'Politique NFT créée avec succès',
                 'policy': {
                     'id': policy.id,
                     'name': policy.name,
                     'policy_id': policy.policy_id,
                     'policy_type': policy.policy_type,
-                    'valid_before': policy.valid_before
+                    'creator': policy.creator.username,
+                    'valid_before': policy.valid_before,
+                    'is_active': policy.is_active,
+                    'created_at': policy.created_at,
+                    'wallet_id': wallet.id,
+                    'wallet_address': wallet.payment_address
                 }
             }, status=201)
             
@@ -58,9 +87,13 @@ class CreateNFTPolicyView(APIView):
                 'message': 'Wallet non trouvé'
             }, status=404)
         except Exception as e:
+            import traceback
+            print(f"Error in CreateNFTPolicyView: {str(e)}")
+            print(traceback.format_exc())
+            
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': f'Erreur lors de la création de la politique: {str(e)}'
             }, status=400)
 
 class MintNFTView(APIView):

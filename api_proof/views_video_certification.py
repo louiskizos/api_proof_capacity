@@ -133,7 +133,8 @@ class CheckCertificationEligibilityAPI(APIView):
             }, status=400)
 
 class RequestCertificationAPI(APIView):
-    """API pour demander une certification"""
+    
+    
     permission_classes = [IsAuthenticated]
     
     def post(self, request, course_id):

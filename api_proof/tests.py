@@ -59,8 +59,36 @@ from django.test import TestCase
 #   "mnemonic_phrase": "word1 word2 ... word24"
 # }
 
+#333 Policy NFT
+# {
+#     "name": "Certification Policy",
+#     "policy_type": "single_issuer",
+#     "expiration_slots": 86400  # 1 jour en secondes
+# }
+
 # nft/1/nfts/certification/
-{
-    "issuer_name": "Proof Capacity Blockchain",
-    "description": "Émetteur officiel de certifications"
-}
+# {
+#     "title": "Master en Science des Données",
+#     "description": "Programme académique complet en data science et machine learning",
+#     "type": "Académique",
+#     "certification_id": "MSD-2024-045",
+#     "issuer_name": "Université de la Data",
+#     "recipient_name": "Sophie Dubois",
+#     "issue_date": "2024-06-15",
+#     "expiration_date": null,
+#     "skills": [
+#         "Python", 
+#         "R", 
+#         "Pandas", 
+#         "NumPy", 
+#         "Scikit-learn", 
+#         "TensorFlow", 
+#         "SQL", 
+#         "Data Visualization", 
+#         "Statistical Analysis"
+#     ],
+#     "standards": ["ISO 25010", "IEEE Standard"],
+#     "image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+# }
+
+
