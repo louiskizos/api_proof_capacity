@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from pathlib import Path
-import os
+
 import dj_database_url
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,6 +53,27 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+# ======================
+# TEMPLATES
+# ======================
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # crée un dossier 'templates' si tu n'en as pas
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+
 ROOT_URLCONF = 'proof_capacity.urls'
 WSGI_APPLICATION = 'proof_capacity.wsgi.application'
 
@@ -57,9 +82,18 @@ AUTH_USER_MODEL = 'api_proof.User'
 # ======================
 # DATABASE (Render)
 # ======================
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
+        default=DATABASE_URL,
         conn_max_age=600,
         ssl_require=True,
     )
