@@ -11,4 +11,5 @@ requests==2.31.0
 pillow>=10.4.0
 python-dotenv==1.0.1
 pycardano>=0.10.0
+setuptools>=67.0.0
 
