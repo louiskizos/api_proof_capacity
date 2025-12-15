@@ -179,6 +179,7 @@ class WalletBalanceView(APIView):
 
 
 class UserWalletsView(APIView):
+    
     authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]  # <-- obligé d'être connecté
     parser_classes = [JSONParser, FormParser, MultiPartParser]
