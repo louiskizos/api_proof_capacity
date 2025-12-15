@@ -17,7 +17,7 @@ User = get_user_model()
 
 class UserRegistrationView(APIView):
 
-    permission_classes = [permissions.AllowAny]
+    #permission_classes = [permissions.AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
@@ -43,7 +43,7 @@ class UserRegistrationView(APIView):
 
 class UserLoginView(APIView):
 
-    permission_classes = [permissions.AllowAny]
+   # permission_classes = [permissions.AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
@@ -175,29 +175,25 @@ class WalletBalanceView(APIView):
                 'message': f'Erreur: {str(e)}'
             }, status=400)
 
+
 class UserWalletsView(APIView):
-    
-
-
     authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]  # <-- obligé d'être connecté
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
-
     def get(self, request):
-
         wallets = CardanoWallet.objects.filter(user=request.user)
-        wallets_data = []
-        
-        for wallet in wallets:
-            wallets_data.append({
+        wallets_data = [
+            {
                 'id': wallet.id,
                 'name': wallet.name,
                 'payment_address': wallet.payment_address,
                 'stake_address': wallet.stake_address,
                 'network': wallet.network,
                 'created_at': wallet.created_at
-            })
+            }
+            for wallet in wallets
+        ]
         
         return Response({
             'status': 'success',
