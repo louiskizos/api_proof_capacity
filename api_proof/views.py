@@ -17,7 +17,7 @@ User = get_user_model()
 
 class UserRegistrationView(APIView):
 
-    #permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
@@ -43,11 +43,13 @@ class UserRegistrationView(APIView):
 
 class UserLoginView(APIView):
 
-   # permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     def post(self, request):
+
         serializer = UserLoginSerializer(data=request.data)
+
         if serializer.is_valid():
             user = serializer.validated_data['user']
             
@@ -61,7 +63,7 @@ class UserLoginView(APIView):
                 'status': 'success',
                 'message': 'Connexion réussie',
                 'user': UserSerializer(user).data,
-                'token': token.key,  # AJOUTER LE TOKEN ICI
+                'token': token.key,  
                 'session_id': request.session.session_key  # Optionnel pour debug
             }, status=status.HTTP_200_OK)
         
