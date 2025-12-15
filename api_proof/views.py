@@ -9,7 +9,7 @@ from .models import CardanoWallet, CardanoTransaction
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 
@@ -180,7 +180,7 @@ class UserWalletsView(APIView):
 
 
     authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
 
