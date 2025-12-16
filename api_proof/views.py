@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view, permission_classes
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def prof_capacity(request):
-    return JsonResponse({"status": "ok"})
+    return JsonResponse({"Message": "Proof Capacity API is running."})
 
 
 
