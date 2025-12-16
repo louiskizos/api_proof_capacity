@@ -4,7 +4,7 @@ from . import views, views_nft, views_video_certification, views_video
 urlpatterns = [
 
     path('', views.prof_capacity, name='prof_capacity'),
-    path('user_wallets', views.UserWalletsView.as_view(), name='user_wallets'),
+    path('user_wallets/', views.UserWalletsView.as_view(), name='user_wallets'),
     # ======================= Authentification =============================
 
      path('auth/register/', views.UserRegistrationView.as_view(), name='register'),
@@ -22,6 +22,7 @@ urlpatterns = [
     
     # ===================== Wallets ====================================================
     path('wallets/create/', views.CreateWalletView.as_view(), name='create_wallet'),
+    path('wallets/user_wallets/', views.UserWalletsView.as_view(), name='user_wallets'),
     path('wallets/wallets/<int:wallet_id>/balance/', views.WalletBalanceView.as_view(), name='wallet_balance'),
     path('wallets/network/info/', views.NetworkInfoView.as_view(), name='network_info'),
     # ===================== Transactions ====================================================
