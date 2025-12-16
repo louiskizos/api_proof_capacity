@@ -26,12 +26,7 @@ class UserRegistrationView(APIView):
 
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
-
-    def get(self, request):
-        return Response(
-            {"detail": "Use POST method"},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
+    
     
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -58,12 +53,6 @@ class UserLoginView(APIView):
 
     permission_classes = [AllowAny]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
-
-    def get(self, request):
-        return Response(
-            {"detail": "Use POST method"},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
     
     def post(self, request):
 
