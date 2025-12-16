@@ -72,7 +72,7 @@ class UserLoginView(APIView):
                 'message': 'Connexion réussie',
                 'user': UserSerializer(user).data,
                 'token': token.key,  
-                'session_id': request.session.session_key  # Optionnel pour debug
+                #'session_id': request.session.session_key  # Optionnel pour debug
             }, status=status.HTTP_200_OK)
         
         return Response({
