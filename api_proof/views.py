@@ -10,6 +10,13 @@ from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def prof_capacity(request):
+    return JsonResponse({"status": "ok"})
 
 
 
