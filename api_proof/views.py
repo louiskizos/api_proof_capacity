@@ -1,4 +1,4 @@
-from rest_framework import status, permissions
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import login, logout
@@ -8,7 +8,7 @@ from .wallet_service import CardanoWalletService
 from .models import CardanoWallet, CardanoTransaction
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
@@ -72,7 +72,7 @@ class UserLoginView(APIView):
                 'message': 'Connexion réussie',
                 'user': UserSerializer(user).data,
                 'token': token.key,  
-                #'session_id': request.session.session_key  # Optionnel pour debug
+                #'session_id': request.session.session_key 
             }, status=status.HTTP_200_OK)
         
         return Response({
@@ -102,7 +102,7 @@ class UserProfileView(APIView):
 
 class CreateWalletView(APIView):
 
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     
@@ -188,7 +188,7 @@ class WalletBalanceView(APIView):
 
 class UserWalletsView(APIView):
     
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]  # <-- obligé d'être connecté
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
