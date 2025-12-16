@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
 
 #DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "api-proof-capacity.onrender.com",

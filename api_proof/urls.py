@@ -26,10 +26,10 @@ urlpatterns = [
     path('wallets/network/info/', views.NetworkInfoView.as_view(), name='network_info'),
     # ===================== Transactions ====================================================
     
-    path('api/wallets/<int:wallet_id>/envoi/', views.CreateTransactionView.as_view(), name='send_transaction'),
-    path('api/wallets/<int:wallet_id>/historique/', views.TransactionHistoryView.as_view(), name='transaction_history'),
-    path('api/transactions/', views.WalletTransactionsView.as_view(), name='all_transactions'),
-    path('api/transactions/<str:transaction_hash>/', views.TransactionDetailsView.as_view(), name='transaction_details'),
+    path('wallets/<int:wallet_id>/envoi/', views.CreateTransactionView.as_view(), name='send_transaction'),
+    path('wallets/<int:wallet_id>/historique/', views.TransactionHistoryView.as_view(), name='transaction_history'),
+    path('transactions/', views.WalletTransactionsView.as_view(), name='all_transactions'),
+    path('transactions/<str:transaction_hash>/', views.TransactionDetailsView.as_view(), name='transaction_details'),
     # ===================== NFT ====================================================
     path('nft/<int:wallet_id>/nfts/policy/', views_nft.CreateNFTPolicyView.as_view(), name='create-policy'),
     path('nft/<int:wallet_id>/nfts/mint/', views_nft.MintNFTView.as_view(), name='mint-nft'),
