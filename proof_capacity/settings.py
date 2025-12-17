@@ -21,6 +21,8 @@ ALLOWED_HOSTS = [
     "api-proof-capacity.onrender.com",
     "localhost",
     "127.0.0.1",
+    "localhost:3001",
+    "poc-official.vercel.app",
 ]
 
 # ======================
@@ -78,6 +80,9 @@ TEMPLATES = [
         },
     },
 ]
+
+BLOCKFROST_PROJECT_ID_PREVIEW = "previewYBps1L7dPtVstkxZST5lptKJ16Lke4BA"
+
 
 
 ROOT_URLCONF = 'proof_capacity.urls'

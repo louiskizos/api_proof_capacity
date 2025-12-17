@@ -17,6 +17,16 @@ from django.test import TestCase
     "password": "Test@1234"
 }
 
+# fetch("http://127.0.0.1:8000/api/wallets/create/", {
+#   method: "POST",
+#   headers: {
+#     "Authorization": "Token 9930063c9c3445d58c890f3f3b5c088f9a0c1e63",
+#     "Content-Type": "application/json"
+#   },
+#   body: JSON.stringify({ name: "Mon Cardano Wallet" })
+# })
+# .then(r => r.json())
+# .then(console.log);
 
 
 

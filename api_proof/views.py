@@ -99,6 +99,66 @@ class UserProfileView(APIView):
             'user': UserSerializer(request.user).data
         })
 
+# from rest_framework.views import APIView
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.authentication import TokenAuthentication
+# from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+# from rest_framework.response import Response
+# from rest_framework import status
+
+# class CreateWalletView(APIView):
+
+#     authentication_classes = [TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
+#     parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+#     def post(self, request):
+#         try:
+#             # 🔐 Ici, request.user est FORCÉMENT authentifié
+#             user = request.user
+
+#             data = request.data
+#             name = data.get('name')
+
+#             if not name:
+#                 return Response({
+#                     'status': 'error',
+#                     'message': 'Le nom du wallet est requis'
+#                 }, status=status.HTTP_400_BAD_REQUEST)
+
+#             wallet_service = CardanoWalletService()
+#             wallet_data = wallet_service.generate_wallet(name=name)
+
+#             wallet = CardanoWallet.objects.create(
+#                 user=user,
+#                 name=wallet_data['name'],
+#                 payment_address=wallet_data['payment_address'],
+#                 stake_address=wallet_data['stake_address'],
+#                 payment_signing_key=wallet_data['payment_signing_key'],
+#                 payment_verification_key=wallet_data['payment_verification_key'],
+#                 stake_signing_key=wallet_data['stake_signing_key'],
+#                 stake_verification_key=wallet_data['stake_verification_key'],
+#                 network=wallet_data['network']
+#             )
+
+#             return Response({
+#                 'status': 'success',
+#                 'message': 'Wallet créé avec succès',
+#                 'wallet': {
+#                     'id': wallet.id,
+#                     'name': wallet.name,
+#                     'payment_address': wallet.payment_address,
+#                     'stake_address': wallet.stake_address,
+#                     'network': wallet.network
+#                 }
+#             }, status=status.HTTP_201_CREATED)
+
+#         except Exception as e:
+#             return Response({
+#                 'status': 'error',
+#                 'message': f'Erreur lors de la création du wallet: {str(e)}'
+#             }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CreateWalletView(APIView):
 
@@ -160,6 +220,8 @@ class CreateWalletView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 class WalletBalanceView(APIView):
 
     
@@ -189,7 +251,7 @@ class WalletBalanceView(APIView):
 class UserWalletsView(APIView):
     
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]  # <-- obligé d'être connecté
+    permission_classes = [IsAuthenticated]  
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def get(self, request):
